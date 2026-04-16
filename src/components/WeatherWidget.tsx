@@ -16,6 +16,8 @@ interface WeatherState {
   city: string
   country: string
   timezone: string
+  sunrise: string
+  sunset: string
 }
 
 type Condition = 'clear' | 'cloudy' | 'foggy' | 'rainy' | 'snowy' | 'stormy'
@@ -91,7 +93,7 @@ export default function WeatherWidget() {
     setQuery('')
     try {
       const res = await fetch(
-        `https://api.open-meteo.com/v1/forecast?latitude=${city.latitude}&longitude=${city.longitude}&current=temperature_2m,weather_code&timezone=auto`
+        `https://api.open-meteo.com/v1/forecast?latitude=${city.latitude}&longitude=${city.longitude}&current=temperature_2m,weather_code&daily=sunrise,sunset&forecast_days=1&timezone=auto`
       )
       const data = await res.json()
       setWeather({
@@ -100,6 +102,8 @@ export default function WeatherWidget() {
         city: city.name,
         country: city.country,
         timezone: data.timezone,
+        sunrise: data.daily.sunrise[0].slice(11), // "HH:MM"
+        sunset: data.daily.sunset[0].slice(11),   // "HH:MM"
       })
       setStatus('idle')
     } catch {
@@ -134,9 +138,13 @@ export default function WeatherWidget() {
           <div>
             <p className="text-white font-semibold text-lg leading-tight">{weather.city}</p>
             <p className="text-white font-semibold text-lg leading-tight">{weather.country}</p>
+            <div className="flex gap-4 mt-2">
+              <p className="text-white/70 text-sm">↑ {weather.sunrise}</p>
+              <p className="text-white/70 text-sm">↓ {weather.sunset}</p>
+            </div>
             <button
               onClick={() => setWeather(null)}
-              className="mt-3 text-white/50 text-sm hover:text-white/80 transition-colors cursor-pointer"
+              className="mt-2 text-white/50 text-sm hover:text-white/80 transition-colors cursor-pointer"
             >
               Change city
             </button>
